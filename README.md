@@ -37,7 +37,7 @@ Logs could be tracked at ```/root/openwrt-{{ open_wrt_release_version }}-builder
 ## Variables
 
 - ```open_wrt_release_version```: could be ```1407``` or ```1209```
-- ```open_wrt_arch```: at least ```ar7xxx-ar9xxx``` is a valid one, for more options or for adding your own read [here](https://github.com/gitinsky/ansible-role-openwrt-builder#updating-role-with-more-architecture-specific-images).
+- ```open_wrt_arch```: at least ```ar71xx``` is a valid one, for more options or for adding your own read [here](https://github.com/gitinsky/ansible-role-openwrt-builder#updating-role-with-more-architecture-specific-images).
 
 ## Examples
 
@@ -76,6 +76,6 @@ Here’s the sample playbook:
 - hosts: openwrt-builders
   sudo: yes
   roles:
-    - { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: ar7xxx-ar9xxx }
+    - { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: ar71xx }
 
 ```
