@@ -1,0 +1,46 @@
+---
+- name: create directories
+  file:
+    dest: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "/root/openwrt-{{ open_wrt_release_version }}-builder/result"
+    - "/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs"
+    - "/root/openwrt-{{ open_wrt_release_version }}-builder/run"
+    - "/root/openwrt-{{ open_wrt_release_version }}-builder/config"
+  
+- name: ensure done flag is removed
+  file: &id002
+    dest:  "/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs/openwrt-{{ open_wrt_release_version }}-builder-raw.done"
+    state: absent
+
+- name: run openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }} and compile
+  docker:
+    image: "gitinsky/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}"
+    detach: no
+    volumes:
+      - "/root/openwrt-{{ open_wrt_release_version }}-builder/result:/compile/openwrt-{{ open_wrt_release_version }}/bin"
+      - "/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs:/compile/logs"
+      - "/root/openwrt-{{ open_wrt_release_version }}-builder/run:/compile/run"
+      - "/root/openwrt-{{ open_wrt_release_version }}-builder/config:/compile/config"
+    name: "openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}"
+    command: "/compile/run/run.sh {{ open_wrt_arch }}.config"
+  register: docker_run
+
+- name: show container info
+  debug: var=docker_run
+
+- name: wait for compilation completion
+  wait_for:
+    path: "/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs/openwrt-{{ open_wrt_release_version }}-builder-raw.done"
+    timeout: 3600
+
+- name: remove done flag
+  file: *id002
+
+- name: remove openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }} container
+  docker:
+    image: "gitinsky/openwrt-{{ open_wrt_release_version }}-builder"
+    name: "openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}"
+    state: absent
