@@ -39,6 +39,25 @@ Logs could be tracked at ```/root/openwrt-{{ open_wrt_release_version }}-builder
 - ```open_wrt_release_version```: could be ```1407``` or ```1209```
 - ```open_wrt_arch```: at least ```ar71xx``` is a valid one, for more options or for adding your own read [here](https://github.com/gitinsky/ansible-role-openwrt-builder#updating-role-with-more-architecture-specific-images).
 
+## Paths
+
+The following volumes are mounted to the containter:
+
+* ```/root/openwrt-{{ open_wrt_release_version }}-builder/result``` to ```/compile/openwrt-{{ open_wrt_release_version }}/bin```
+* ```/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs``` to ```/compile/logs"
+* ```/root/openwrt-{{ open_wrt_release_version }}-builder/run``` to ```/compile/run```
+* ```/root/openwrt-{{ open_wrt_release_version }}-builder/config``` to ```/compile/config```
+
+Container start command is ```/compile/run/run.sh {{ open_wrt_arch }}.config```.
+
+So for ar71xx on 14.09 the following files are required:
+
+- ```/root/openwrt-1407-builder/config/ar71xx.config```
+- ```/root/openwrt-1407-builder/run/run.sh```
+
+Log file could be found at ```/root/openwrt-1407-builder-ar71xx/logs/make.log```.
+Firmwares and packages should occure in the following folder: ```/root/openwrt-1407-builder/result```.
+
 ## Examples
 
 Here’s the sample playbook:
