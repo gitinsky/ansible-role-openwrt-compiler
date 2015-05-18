@@ -10,30 +10,6 @@ This role is designed for compiling custom openwrt firmwares with docker contain
 - ```/root/openwrt-1407-builder/run/run.sh``` for 14.07 builds
 - ```/compile/logs/openwrt-1407-builder-raw.done``` (or ```/compile/logs/openwrt-1209-builder-raw.done``` ) should be generated inside the container after the build
 
-Here’s the sample run.sh file for 14.07:
-
-```bash
-#!/bin/bash
-if test -n "$1"
-then
-  cp -v /compile/config/$1 /compile/openwrt-1407/.config
-fi
-cp -v /compile/config/010-https_uci_options_heartbeat.patch  /compile/openwrt-1407/feeds/oldpackages/net/coova-chilli/patches/
-cp -v /compile/config/011-apple_captive_portal_support_1.3.0 /compile/openwrt-1407/feeds/oldpackages/net/coova-chilli/patches/
-
-chown compile:compile /compile/openwrt-1407/.config
-chown compile:compile /compile/openwrt-1407/bin
-cd /compile/openwrt-1407 && su compile -c "time make V=99"      2>&1 | tee -a /compile/logs/make.log
-date > /compile/logs/openwrt-1407-builder-raw.done
-while true
-do
-  sleep 60
-done
-
-```
-
-Logs could be tracked at ```/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs:/compile/logs/make.log```
-
 ## Variables
 
 - ```open_wrt_release_version```: could be ```1407``` or ```1209```
@@ -53,9 +29,9 @@ Container start command is ```/compile/run/run.sh {{ open_wrt_arch }}.config```.
 So for ar71xx on 14.09 the following files are required:
 
 - ```/root/openwrt-1407-builder/config/ar71xx.config```
-- ```/root/openwrt-1407-builder/run/run.sh```
+- ```/root/openwrt-1407-builder/run/run.sh``` (see example below)
 
-Log file could be found at ```/root/openwrt-1407-builder-ar71xx/logs/make.log```.
+Log file could be found at ```/root/openwrt-1407-builder-ar71xx/logs/make.log``` if you write it to ```/compile/logs/make.log``` in your ```run.sh```.
 Firmwares and packages should occure in the following folder: ```/root/openwrt-1407-builder/result```.
 
 ## Examples
@@ -98,3 +74,26 @@ Here’s the sample playbook:
     - { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: ar71xx }
 
 ```
+
+Here’s the sample ```run.sh```:
+
+```
+#!/bin/bash
+if test -n "$1"
+then
+  cp -v /compile/config/$1 /compile/openwrt-1407/.config
+fi
+cp -v /compile/config/010-https_uci_options_heartbeat.patch  /compile/openwrt-1407/feeds/oldpackages/net/coova-chilli/patches/
+cp -v /compile/config/011-apple_captive_portal_support_1.3.0 /compile/openwrt-1407/feeds/oldpackages/net/coova-chilli/patches/
+
+chown compile:compile /compile/openwrt-1407/.config
+chown compile:compile /compile/openwrt-1407/bin
+cd /compile/openwrt-1407 && su compile -c "time make V=99"      2>&1 | tee -a /compile/logs/make.log
+date > /compile/logs/openwrt-1407-builder-raw.done
+while true
+do
+  sleep 60
+done
+```
+
+This run.sh generates log file at Logs could be tracked at ```/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs:/compile/logs/make.log```
