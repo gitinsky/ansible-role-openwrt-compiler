@@ -89,9 +89,30 @@ cp -v /compile/config/011-apple_captive_portal_support_1.3.0.patch /compile/open
 
 test -f /compile/logs/make.log && mv -v /compile/logs/make.log /compile/logs/make.log.1
 
+mkdir -vp /compile/openwrt-1407/files/
+cp -rv /compile/config/files/* /compile/openwrt-1407/files
+
+# get architecture from config file
+arch=$(grep '^CONFIG_TARGET_BOARD' /compile/openwrt-1407/.config|cut -d '"' -f 2| tee /dev/stderr)
+# Remove compiled files to prevent dependency error
+rm -rf /compile/openwrt-1407/bin/$arch
+if [[ "$arch" != "x86"  ]]; then
+  rm -v /compile/openwrt-1407/files/etc/config/network
+fi
+
+cd /compile/openwrt-1407
+
+find /compile/config/patches/$arch/ -type f | {
+  while read patch
+  do
+    patch -p0 < bin/4to8lzma.patch 2>&1 | tee -a /compile/logs/make.log
+  done
+}
+
 chown compile:compile /compile/openwrt-1407/.config
 chown compile:compile /compile/openwrt-1407/bin
-cd /compile/openwrt-1407 && su compile -c "time make V=99"      2>&1 | tee -a /compile/logs/make.log
+su compile -c "git pull"       2>&1 | tee -a /compile/logs/make.log
+su compile -c "time make V=99" 2>&1 | tee -a /compile/logs/make.log
 date > /compile/logs/openwrt-1407-builder-raw.done
 while true
 do
