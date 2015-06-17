@@ -9,6 +9,7 @@ This role is designed for compiling custom openwrt firmwares with docker contain
 - ```/root/openwrt-1209-builder/run/run.sh``` for 12.09 builds
 - ```/root/openwrt-1407-builder/run/run.sh``` for 14.07 builds
 - ```/compile/logs/openwrt-1407-builder-raw.done``` (or ```/compile/logs/openwrt-1209-builder-raw.done``` ) should be generated inside the container after the build
+- ```/compile/logs/make.log``` should exist. It's a good practice to recreate it on each new build, see example below. Final task of this role checks this file for make errors.
 
 ## Variables
 
@@ -83,8 +84,10 @@ if test -n "$1"
 then
   cp -v /compile/config/$1 /compile/openwrt-1407/.config
 fi
-cp -v /compile/config/010-https_uci_options_heartbeat.patch  /compile/openwrt-1407/feeds/oldpackages/net/coova-chilli/patches/
-cp -v /compile/config/011-apple_captive_portal_support_1.3.0 /compile/openwrt-1407/feeds/oldpackages/net/coova-chilli/patches/
+cp -v /compile/config/010-https_uci_options_heartbeat.patch        /compile/openwrt-1407/feeds/oldpackages/net/coova-chilli/patches/
+cp -v /compile/config/011-apple_captive_portal_support_1.3.0.patch /compile/openwrt-1407/feeds/oldpackages/net/coova-chilli/patches/
+
+test -f /compile/logs/make.log && mv -v /compile/logs/make.log /compile/logs/make.log.1
 
 chown compile:compile /compile/openwrt-1407/.config
 chown compile:compile /compile/openwrt-1407/bin

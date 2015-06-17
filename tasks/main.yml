@@ -9,7 +9,7 @@
     - "/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs"
     - "/root/openwrt-{{ open_wrt_release_version }}-builder/run"
     - "/root/openwrt-{{ open_wrt_release_version }}-builder/config"
-  
+
 - name: ensure done flag is removed
   file: &id002
     dest:  "/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs/openwrt-{{ open_wrt_release_version }}-builder-raw.done"
@@ -44,3 +44,11 @@
     image: "gitinsky/openwrt-{{ open_wrt_release_version }}-builder"
     name: "openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}"
     state: absent
+
+- name: check if /root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs/make.log contain errors
+  command: grep -E "make:.* Error" /root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs/make.log
+  register: result
+  failed_when: "result.rc == 0"
+  changed_when: false
+  tags:
+    test
