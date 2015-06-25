@@ -25,15 +25,17 @@ The following volumes are mounted to the containter:
 * ```/root/openwrt-{{ open_wrt_release_version }}-builder/run``` to ```/compile/run```
 * ```/root/openwrt-{{ open_wrt_release_version }}-builder/config``` to ```/compile/config```
 
-Container start command is ```/compile/run/run.sh {{ open_wrt_arch }}.config```.
+Container start command is ```/compile/run/run.sh {{ open_wrt_arch }}_{{ open_wrt_subtarget }}.config```.
 
 So for ar71xx on 14.09 the following files are required:
 
-- ```/root/openwrt-1407-builder/config/ar71xx.config```
+- ```/root/openwrt-1407-builder/config/ar71xx_generic.config```
 - ```/root/openwrt-1407-builder/run/run.sh``` (see example below)
 
 Log file could be found at ```/root/openwrt-1407-builder-ar71xx/logs/make.log``` if you write it to ```/compile/logs/make.log``` in your ```run.sh```.
-Firmwares and packages should occure in the following folder: ```/root/openwrt-1407-builder/result```.
+Firmwares and packages should occure in the following folder: ```/root/openwrt```.
+
+In fact firmwares are build in ```/root/openwrt-1407-builder/result``` and then moved to ```/root/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}/``` with rsync.
 
 ## Examples
 
@@ -73,6 +75,7 @@ Here’s the sample playbook:
   sudo: yes
   roles:
     - { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: ar71xx }
+    - { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: ramips, open_wrt_subtarget: mt7620a }
 
 ```
 
@@ -121,3 +124,16 @@ done
 ```
 
 This run.sh generates log file at Logs could be tracked at ```/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs:/compile/logs/make.log```
+
+## Find out ```arch``` and ```subtarget``` for ```.config``` files
+
+```bash
+ls *.config| {
+  while read conf
+  do
+    arch=$(grep '^CONFIG_TARGET_BOARD' $conf|cut -d '"' -f 2)
+    target=$(grep --color -E "^\s{0,}CONFIG_TARGET_${arch}_[a-z,0-9]{1,}=y" $conf| awk -F '[_=]' {'print $4'})
+    echo "$conf: $arch $target"
+  done
+} | column -t
+```

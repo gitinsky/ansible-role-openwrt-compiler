@@ -9,6 +9,7 @@
     - "/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs"
     - "/root/openwrt-{{ open_wrt_release_version }}-builder/run"
     - "/root/openwrt-{{ open_wrt_release_version }}-builder/config"
+    - "/root/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}"
 
 - name: ensure done flag is removed
   file: &id002
@@ -25,7 +26,7 @@
       - "/root/openwrt-{{ open_wrt_release_version }}-builder/run:/compile/run"
       - "/root/openwrt-{{ open_wrt_release_version }}-builder/config:/compile/config"
     name: "openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}"
-    command: "/compile/run/run.sh {{ open_wrt_arch }}.config"
+    command: "/compile/run/run.sh {{ open_wrt_arch }}_{{ open_wrt_subtarget }}.config"
   register: docker_run
 
 - name: show container info
@@ -50,3 +51,6 @@
   register: result
   failed_when: "result.rc == 0"
   changed_when: false
+
+- name: move files to /root/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}
+  command: rsync --remove-source-files --del -avc /root/openwrt-{{ open_wrt_release_version }}-builder/result/{{ open_wrt_arch }}/ /root/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}/

@@ -1,3 +1,4 @@
 ---
 open_wrt_release_version: 1407
 open_wrt_arch: ar71xx
+open_wrt_subtarget: generic
