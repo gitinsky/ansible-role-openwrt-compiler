@@ -6,8 +6,8 @@ This role is designed for compiling custom openwrt firmwares with docker contain
 
 ## Requirements
 
-- ```/root/openwrt-1209-builder/run/run.sh``` for 12.09 builds
-- ```/root/openwrt-1407-builder/run/run.sh``` for 14.07 builds
+- ```{{ openwrt_config_dir }}/openwrt-1209-builder/run/run.sh``` for 12.09 builds
+- ```{{ openwrt_config_dir }}/openwrt-1407-builder/run/run.sh``` for 14.07 builds
 - ```/compile/logs/openwrt-1407-builder-raw.done``` (or ```/compile/logs/openwrt-1209-builder-raw.done``` ) should be generated inside the container after the build
 - ```/compile/logs/make.log``` should exist. It's a good practice to recreate it on each new build, see example below. Final task of this role checks this file for make errors.
 
@@ -20,22 +20,22 @@ This role is designed for compiling custom openwrt firmwares with docker contain
 
 The following volumes are mounted to the containter:
 
-* ```/root/openwrt-{{ open_wrt_release_version }}-builder/result``` to ```/compile/openwrt-{{ open_wrt_release_version }}/bin```
-* ```/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs``` to ```/compile/logs"
-* ```/root/openwrt-{{ open_wrt_release_version }}-builder/run``` to ```/compile/run```
-* ```/root/openwrt-{{ open_wrt_release_version }}-builder/config``` to ```/compile/config```
+* ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/result``` to ```/compile/openwrt-{{ open_wrt_release_version }}/bin```
+* ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs``` to ```/compile/logs"
+* ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/run``` to ```/compile/run```
+* ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/config``` to ```/compile/config```
 
 Container start command is ```/compile/run/run.sh {{ open_wrt_arch }}_{{ open_wrt_subtarget }}.config```.
 
 So for ar71xx on 14.09 the following files are required:
 
-- ```/root/openwrt-1407-builder/config/ar71xx_generic.config```
-- ```/root/openwrt-1407-builder/run/run.sh``` (see example below)
+- ```{{ openwrt_config_dir }}/openwrt-1407-builder/config/ar71xx_generic.config```
+- ```{{ openwrt_config_dir }}/openwrt-1407-builder/run/run.sh``` (see example below)
 
-Log file could be found at ```/root/openwrt-1407-builder-ar71xx/logs/make.log``` if you write it to ```/compile/logs/make.log``` in your ```run.sh```.
-Firmwares and packages should occure in the following folder: ```/root/openwrt```.
+Log file could be found at ```{{ openwrt_config_dir }}/openwrt-1407-builder-ar71xx/logs/make.log``` if you write it to ```/compile/logs/make.log``` in your ```run.sh```.
+Firmwares and packages should occure in the following folder: ```{{ openwrt_config_dir }}/openwrt```.
 
-In fact firmwares are build in ```/root/openwrt-1407-builder/result``` and then moved to ```/root/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}/``` with rsync.
+In fact firmwares are build in ```{{ openwrt_config_dir }}/openwrt-1407-builder/result``` and then moved to ```{{ openwrt_config_dir }}/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}/``` with rsync.
 
 ## Examples
 
@@ -51,10 +51,10 @@ Here’s the sample playbook:
          state: directory
          mode: 0755
        with_items:
-         - /root/openwrt-1209-builder/config
-         - /root/openwrt-1407-builder/config
-         - /root/openwrt-1407-builder/run/
-         - /root/openwrt-1209-builder/run/
+         - {{ openwrt_config_dir }}/openwrt-1209-builder/config
+         - {{ openwrt_config_dir }}/openwrt-1407-builder/config
+         - {{ openwrt_config_dir }}/openwrt-1407-builder/run/
+         - {{ openwrt_config_dir }}/openwrt-1209-builder/run/
 
      - name: put patches and files
        template:
@@ -62,13 +62,13 @@ Here’s the sample playbook:
          dest: "{{ item.dst }}"
          mode: "{{ item.mode }}"
        with_items:
-         - { file: 010-https_uci_options_heartbeat.patch              , dst: /root/openwrt-1209-builder/config/ , mode: "u=rw,g=rw,o=rw" }
-         - { file: 12.09/011-apple_captive_portal_support.patch       , dst: /root/openwrt-1209-builder/config/ , mode: "u=rw,g=rw,o=rw" }
-         - { file: 12.09/Makefile                                     , dst: /root/openwrt-1209-builder/config/ , mode: "u=rw,g=rw,o=rw" }
-         - { file: 12.09/run.sh                                       , dst: /root/openwrt-1209-builder/run/    , mode: "u=rwx,g=rw,o=rw" }
-         - { file: 010-https_uci_options_heartbeat.patch              , dst: /root/openwrt-1407-builder/config/ , mode: "u=rw,g=rw,o=rw" }
-         - { file: 14.07/011-apple_captive_portal_support_1.3.0.patch , dst: /root/openwrt-1407-builder/config/ , mode: "u=rw,g=rw,o=rw" }
-         - { file: 14.07/run.sh                                       , dst: /root/openwrt-1407-builder/run/    , mode: "u=rwx,g=rw,o=rw" }
+         - { file: 010-https_uci_options_heartbeat.patch              , dst: {{ openwrt_config_dir }}/openwrt-1209-builder/config/ , mode: "u=rw,g=rw,o=rw" }
+         - { file: 12.09/011-apple_captive_portal_support.patch       , dst: {{ openwrt_config_dir }}/openwrt-1209-builder/config/ , mode: "u=rw,g=rw,o=rw" }
+         - { file: 12.09/Makefile                                     , dst: {{ openwrt_config_dir }}/openwrt-1209-builder/config/ , mode: "u=rw,g=rw,o=rw" }
+         - { file: 12.09/run.sh                                       , dst: {{ openwrt_config_dir }}/openwrt-1209-builder/run/    , mode: "u=rwx,g=rw,o=rw" }
+         - { file: 010-https_uci_options_heartbeat.patch              , dst: {{ openwrt_config_dir }}/openwrt-1407-builder/config/ , mode: "u=rw,g=rw,o=rw" }
+         - { file: 14.07/011-apple_captive_portal_support_1.3.0.patch , dst: {{ openwrt_config_dir }}/openwrt-1407-builder/config/ , mode: "u=rw,g=rw,o=rw" }
+         - { file: 14.07/run.sh                                       , dst: {{ openwrt_config_dir }}/openwrt-1407-builder/run/    , mode: "u=rwx,g=rw,o=rw" }
 
 
 - hosts: openwrt-builders
@@ -123,7 +123,7 @@ do
 done
 ```
 
-This run.sh generates log file at Logs could be tracked at ```/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs:/compile/logs/make.log```
+This run.sh generates log file at Logs could be tracked at ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs:/compile/logs/make.log```
 
 ## Find out ```arch``` and ```subtarget``` for ```.config``` files
 

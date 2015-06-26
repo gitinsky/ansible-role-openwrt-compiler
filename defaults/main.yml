@@ -2,3 +2,6 @@
 open_wrt_release_version: 1407
 open_wrt_arch: ar71xx
 open_wrt_subtarget: generic
+openwrt_config_dir: "/root/openwrt/"
+openwrt_output_dir_path: "/var/www/openwrt"
+openwrt_output_dir_owner: "www-data"
