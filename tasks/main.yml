@@ -12,7 +12,7 @@
     - "{{ openwrt_config_dir }}/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}"
 
 - name: check if container is already running
-  shell: docker ps| grep -E '\s+openwrt-{{ unirun_open_wrt_release_version }}-builder-{{ unirun_open_wrt_arch }}-docker-image-build\s+'
+  shell: docker ps| grep -E '\s+gitinsky/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}\s+'
   failed_when: false
   changed_when: container.rc == 0
   register: container
@@ -60,12 +60,15 @@
   register: result
   failed_when: "result.rc == 0"
   changed_when: false
-  
+
 - name: create targer directory
   file:
-      dest: "{{ openwrt_output_dir_path }}"
+      dest: "{{ item }}"
       state: directory
       owner: "{{ openwrt_output_dir_owner }}"
+  with_items:
+    - "{{ openwrt_output_dir_path }}"
+    - "{{ openwrt_output_dir_path }}/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}/"
 
 - name: move files to {{ openwrt_config_dir }}/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}
   command: rsync --remove-source-files --del -avc {{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/result/{{ open_wrt_arch }}/ {{ openwrt_output_dir_path }}/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}/
