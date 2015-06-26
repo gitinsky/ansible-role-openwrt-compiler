@@ -11,7 +11,14 @@
     - "/root/openwrt-{{ open_wrt_release_version }}-builder/config"
     - "/root/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}"
 
+- name: check if container is already running
+  shell: docker ps| grep -E '\s+openwrt-{{ unirun_open_wrt_release_version }}-builder-{{ unirun_open_wrt_arch }}-docker-image-build\s+'
+  failed_when: false
+  changed_when: container.rc == 0
+  register: container
+
 - name: ensure done flag is removed
+  when: not container.changed
   file: &id002
     dest:  "/root/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs/openwrt-{{ open_wrt_release_version }}-builder-raw.done"
     state: absent
@@ -28,9 +35,11 @@
     name: "openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}"
     command: "/compile/run/run.sh {{ open_wrt_arch }}_{{ open_wrt_subtarget }}.config"
   register: docker_run
+  when: not container.changed
 
 - name: show container info
   debug: var=docker_run
+  when: not container.changed
 
 - name: wait for compilation completion
   wait_for:
