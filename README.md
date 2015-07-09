@@ -81,7 +81,7 @@ Here’s the sample playbook:
 
 Here’s the sample ```run.sh```:
 
-```
+```bash
 #!/bin/bash
 if test -n "$1"
 then

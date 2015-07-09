@@ -5,14 +5,14 @@
     state: directory
     mode: 0755
   with_items:
-    - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/result"
-    - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs"
+    - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/result"
+    - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/logs"
     - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/run"
     - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/config"
     - "{{ openwrt_config_dir }}/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}"
 
 - name: check if container is already running
-  shell: docker ps| grep -E '\s+gitinsky/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}\s+'
+  shell: docker ps| grep -E '\s+gitinsky/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}-{{ open_wrt_subtarget }}-compiler\s+'
   failed_when: false
   changed_when: container.rc == 0
   register: container
@@ -20,7 +20,7 @@
 - name: ensure done flag is removed
   when: not container.changed
   file: &id002
-    dest:  "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs/openwrt-{{ open_wrt_release_version }}-builder-raw.done"
+    dest:  "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/logs/openwrt-{{ open_wrt_release_version }}-builder-compiler.done"
     state: absent
 
 - name: run openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }} and compile
@@ -28,11 +28,11 @@
     image: "gitinsky/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}"
     detach: no
     volumes:
-      - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/result:/compile/openwrt-{{ open_wrt_release_version }}/bin"
-      - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs:/compile/logs"
+      - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/result:/compile/openwrt-{{ open_wrt_release_version }}/bin"
+      - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/logs:/compile/logs"
       - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/run:/compile/run"
       - "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/config:/compile/config"
-    name: "openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}"
+    name: "openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}-{{ open_wrt_subtarget }}-compiler"
     command: "/compile/run/run.sh {{ open_wrt_arch }}_{{ open_wrt_subtarget }}.config"
   register: docker_run
   when: not container.changed
@@ -40,23 +40,24 @@
 - name: show container info
   debug: var=docker_run
   when: not container.changed
+  changed_when: docker_run.changed
 
 - name: wait for compilation completion
   wait_for:
-    path: "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs/openwrt-{{ open_wrt_release_version }}-builder-raw.done"
+    path: "{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/logs/openwrt-{{ open_wrt_release_version }}-builder-compiler.done"
     timeout: 3600
 
 - name: remove done flag
   file: *id002
 
-- name: remove openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }} container
+- name: remove openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}-{{ open_wrt_subtarget }}-compiler container
   docker:
     image: "gitinsky/openwrt-{{ open_wrt_release_version }}-builder"
-    name: "openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}"
+    name: "openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}-{{ open_wrt_subtarget }}-compiler"
     state: absent
 
 - name: check if {{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs/make.log contain errors
-  command: grep -E "make:.* Error" {{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs/make.log
+  command: grep -E "make:.* Error" {{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/logs/make.log
   register: result
   failed_when: "result.rc == 0"
   changed_when: false
@@ -71,4 +72,4 @@
     - "{{ openwrt_output_dir_path }}/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}/"
 
 - name: move files to {{ openwrt_config_dir }}/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}
-  command: rsync --remove-source-files --del -avc {{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/result/{{ open_wrt_arch }}/ {{ openwrt_output_dir_path }}/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}/
+  command: rsync --remove-source-files --del -avc {{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/result/{{ open_wrt_arch }}/ {{ openwrt_output_dir_path }}/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}/
