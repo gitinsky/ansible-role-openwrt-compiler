@@ -42,40 +42,51 @@ In fact firmwares are build in ```{{ openwrt_config_dir }}/openwrt-1407-builder/
 Here’s the sample playbook:
 
 ```yaml
+- name: create directories
+  file:
+    dest: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /root/openwrt/openwrt-1209-builder/config
+    - /root/openwrt/openwrt-1407-builder/config
+    - /root/openwrt/openwrt-1407-builder/run
+    - /root/openwrt/openwrt-1209-builder/run
+  tags:
+    - ar71xx
+    - ramips
+    - x86
+
+- name: put patches and files
+  synchronize:
+    src: "templates/{{ item.src }}/"
+    dest: "/root/openwrt/{{ item.dst }}"
+    archive: false
+    recursive: true
+    delete: "{{ item.delete}}"
+    set_remote_user: no
+    perms: yes
+    checksum: true
+    rsync_opts:
+        --exclude=.git
+        --exclude=.DS_Store
+  with_items:
+    - { src: 12.09/config, dst: openwrt-1209-builder/config , delete: yes }
+    - { src: 14.07/config, dst: openwrt-1407-builder/config , delete: yes }
+    - { src: 12.09/run,    dst: openwrt-1209-builder/run    , delete: no  }
+    - { src: 14.07/run,    dst: openwrt-1407-builder/run    , delete: no  }
+  tags:
+    - ar71xx
+    - ramips
+    - x86
+
 - hosts: openwrt-builders
-  sudo: yes
-  tasks:
-       - name: create directories
-       file:
-         dest: "{{ item }}"
-         state: directory
-         mode: 0755
-       with_items:
-         - {{ openwrt_config_dir }}/openwrt-1209-builder/config
-         - {{ openwrt_config_dir }}/openwrt-1407-builder/config
-         - {{ openwrt_config_dir }}/openwrt-1407-builder/run/
-         - {{ openwrt_config_dir }}/openwrt-1209-builder/run/
-
-     - name: put patches and files
-       template:
-         src: "templates/{{ item.file }}"
-         dest: "{{ item.dst }}"
-         mode: "{{ item.mode }}"
-       with_items:
-         - { file: 010-https_uci_options_heartbeat.patch              , dst: {{ openwrt_config_dir }}/openwrt-1209-builder/config/ , mode: "u=rw,g=rw,o=rw" }
-         - { file: 12.09/011-apple_captive_portal_support.patch       , dst: {{ openwrt_config_dir }}/openwrt-1209-builder/config/ , mode: "u=rw,g=rw,o=rw" }
-         - { file: 12.09/Makefile                                     , dst: {{ openwrt_config_dir }}/openwrt-1209-builder/config/ , mode: "u=rw,g=rw,o=rw" }
-         - { file: 12.09/run.sh                                       , dst: {{ openwrt_config_dir }}/openwrt-1209-builder/run/    , mode: "u=rwx,g=rw,o=rw" }
-         - { file: 010-https_uci_options_heartbeat.patch              , dst: {{ openwrt_config_dir }}/openwrt-1407-builder/config/ , mode: "u=rw,g=rw,o=rw" }
-         - { file: 14.07/011-apple_captive_portal_support_1.3.0.patch , dst: {{ openwrt_config_dir }}/openwrt-1407-builder/config/ , mode: "u=rw,g=rw,o=rw" }
-         - { file: 14.07/run.sh                                       , dst: {{ openwrt_config_dir }}/openwrt-1407-builder/run/    , mode: "u=rwx,g=rw,o=rw" }
-
-
-- hosts: openwrt-builders
-  sudo: yes
-  roles:
-    - { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: ar71xx }
-    - { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: ramips, open_wrt_subtarget: mt7620a }
+sudo: yes
+roles:
+- { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: ar71xx, open_wrt_subtarget: generic,  tags: ['ar71xx']   }
+- { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: ramips, open_wrt_subtarget: mt7620a,  tags: ['ramips']   }
+- { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: x86   , open_wrt_subtarget: generic,  tags: ['x86'   ]   }
+- { role: openwrt-compiler, open_wrt_release_version: 1407, open_wrt_arch: ar71xx, open_wrt_subtarget: mikrotik, tags: ['mikrotik'] }
 
 ```
 
