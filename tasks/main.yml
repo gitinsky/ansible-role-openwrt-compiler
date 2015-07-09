@@ -12,7 +12,7 @@
     - "{{ openwrt_config_dir }}/openwrt/{{ open_wrt_release_version }}/{{ open_wrt_arch }}/{{ open_wrt_subtarget }}"
 
 - name: check if container is already running
-  shell: docker ps| grep -E '\s+gitinsky/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}-{{ open_wrt_subtarget }}-compiler\s+'
+  shell: docker ps| grep -E '\s+openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}-{{ open_wrt_subtarget }}-compiler\s+'
   failed_when: false
   changed_when: container.rc == 0
   register: container
