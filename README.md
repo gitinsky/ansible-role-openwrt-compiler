@@ -20,8 +20,8 @@ This role is designed for compiling custom openwrt firmwares with docker contain
 
 The following volumes are mounted to the containter:
 
-* ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/result``` to ```/compile/openwrt-{{ open_wrt_release_version }}/bin```
-* ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs``` to ```/compile/logs"
+* ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/result``` to ```/compile/openwrt-{{ open_wrt_release_version }}/bin```
+* ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/logs``` to ```/compile/logs"
 * ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/run``` to ```/compile/run```
 * ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder/config``` to ```/compile/config```
 
@@ -123,7 +123,7 @@ do
 done
 ```
 
-This run.sh generates log file at Logs could be tracked at ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}/logs:/compile/logs/make.log```
+This run.sh generates log file at Logs could be tracked at ```{{ openwrt_config_dir }}/openwrt-{{ open_wrt_release_version }}-builder-{{ open_wrt_arch }}_{{ open_wrt_subtarget }}/logs:/compile/logs/make.log```
 
 ## Find out ```arch``` and ```subtarget``` for ```.config``` files
 
