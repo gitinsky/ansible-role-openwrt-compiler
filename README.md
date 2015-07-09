@@ -8,7 +8,7 @@ This role is designed for compiling custom openwrt firmwares with docker contain
 
 - ```{{ openwrt_config_dir }}/openwrt-1209-builder/run/run.sh``` for 12.09 builds
 - ```{{ openwrt_config_dir }}/openwrt-1407-builder/run/run.sh``` for 14.07 builds
-- ```/compile/logs/openwrt-1407-builder-raw.done``` (or ```/compile/logs/openwrt-1209-builder-raw.done``` ) should be generated inside the container after the build
+- ```/compile/logs/openwrt-1407-builder-compiler.done``` (or ```/compile/logs/openwrt-1209-builder-compiler.done``` ) should be generated inside the container after the build
 - ```/compile/logs/make.log``` should exist. It's a good practice to recreate it on each new build, see example below. Final task of this role checks this file for make errors.
 
 ## Variables
@@ -127,7 +127,7 @@ chown compile:compile /compile/openwrt-1407/.config
 chown compile:compile /compile/openwrt-1407/bin
 su compile -c "git pull"       2>&1 | tee -a /compile/logs/make.log
 su compile -c "time make V=99" 2>&1 | tee -a /compile/logs/make.log
-date > /compile/logs/openwrt-1407-builder-raw.done
+date > /compile/logs/openwrt-1407-builder-compiler.done
 while true
 do
   sleep 60
